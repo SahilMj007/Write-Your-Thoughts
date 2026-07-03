@@ -1,0 +1,29 @@
+import { v2 as cloudinary } from "cloudinary";
+import dotenv from "dotenv";
+import ApiError from "./apiErrorHandler.js";
+import fs from "fs";
+dotenv.config({
+  path: "./.env",
+});
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const uploadOnCloudinary = async (localStoragePath) => {
+  try {
+    if (!localStoragePath) return null;
+    const response = await cloudinary.uploader.upload(localStoragePath, {
+      resource_type: "auto",
+    });
+    fs.unlinkSync(localStoragePath);
+    return response;
+  } catch (error) {
+    fs.unlinkSync(localStoragePath);
+    throw new ApiError(401, `${error.message}`);
+  }
+};
+
+export { uploadOnCloudinary };
